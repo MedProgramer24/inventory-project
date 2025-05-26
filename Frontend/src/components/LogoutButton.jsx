@@ -23,7 +23,7 @@ function LogoutButton() {
       );
 
       if (status === 200) {
-        navigator("/", { replace: true });
+        navigator("/auth", { replace: true });
         window.location.reload();
       }
     } catch (error) {

@@ -1,4 +1,5 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
+
 import DashBoardLayout from "./pages/dashboard/DashBoardLayout";
 import LoginScreen from "./pages/login/LoginScreen";
 import SignupScreen from "./pages/login/SignupScreen";
@@ -19,19 +20,22 @@ import NewBrandsScreen from "./pages/brands/NewBrandsScreen";
 import EditBrandsScreen from "./pages/brands/EditBrandsScreen";
 import UserManagementScreen from "./pages/users/UserManagementScreen";
 import ProductHistoryScreen from "./pages/product/ProductHistoryScreen";
+
 const router = createBrowserRouter([
+  // Redirect from "/" to "/auth"
   {
     path: "/",
+    element: <Navigate to="/auth" replace />,
+  },
+
+  {
+    path: "/DashBoard",
     element: <DashBoardLayout />,
     children: [
       {
-        path: "",
+        index: true,
         element: <DashBoardScreen />,
       },
-      // {
-      //   path: "add-item",
-      //   element: <AddItemScreen />,
-      // },
       {
         path: "add-product",
         element: <InventoryFormScreen />,
@@ -45,58 +49,66 @@ const router = createBrowserRouter([
         element: <ProductEditScreen />,
       },
 
-      // new routes
-
+      // new routes under /DashBoard (relative paths)
       {
-        path: "/products",
+        path: "products",
         element: <PrductsScreen />,
       },
-      { path: "/products/new", element: <AddNewProductScreen /> },
-      { path: "/products/edit/:id", element: <ProductEditScreen /> },
-      { path: "/products/history/:id", element: <ProductHistoryScreen /> },
-
-      //  brands
-
       {
-        path: "/brands",
+        path: "products/new",
+        element: <AddNewProductScreen />,
+      },
+      {
+        path: "products/edit/:id",
+        element: <ProductEditScreen />,
+      },
+      {
+        path: "products/history/:id",
+        element: <ProductHistoryScreen />,
+      },
+
+      // brands
+      {
+        path: "brands",
         element: <BrandsScreen />,
       },
       {
-        path: "/brands/new",
+        path: "brands/new",
         element: <NewBrandsScreen />,
       },
       {
-        path: "/brands/edit/:id",
+        path: "brands/edit/:id",
         element: <EditBrandsScreen />,
       },
 
       // locations
       {
-        path: "/locations",
+        path: "locations",
         element: <LocationsScreen />,
       },
       {
-        path: "/locations/new",
+        path: "locations/new",
         element: <NewLocationScreen />,
       },
       {
-        path: "/locations/edit/:id",
+        path: "locations/edit/:id",
         element: <EditLocationScreen />,
       },
+
       // users
       {
-        path: "/users",
+        path: "users",
         element: <UserManagementScreen />,
       },
     ],
   },
+
   {
     path: "/auth",
     element: <AuthLayout />,
     children: [
       {
         index: true,
-        path: "",
         element: <LoginScreen />,
       },
       {
@@ -108,6 +120,7 @@ const router = createBrowserRouter([
 ]);
 
 export default router;
+
 export const SERVER_URL =
   import.meta.env.VITE_MODE === "DEV"
     ? import.meta.env.VITE_LOCAL
