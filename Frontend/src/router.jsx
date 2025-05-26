@@ -29,7 +29,7 @@ const router = createBrowserRouter([
   },
 
   {
-    path: "/DashBoard",
+    path: "/",
     element: <DashBoardLayout />,
     children: [
       {
