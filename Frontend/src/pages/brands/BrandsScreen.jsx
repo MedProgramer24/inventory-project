@@ -9,22 +9,26 @@ import { SERVER_URL } from "../../router";
 
 function BrandsScreen() {
   const [isLoading, setLoading] = useState(true);
-  const [data, setData] = useState(null);
+  const [data, setData] = useState([]);  // initialize as empty array
   const [isError, setError] = useState("");
 
   useEffect(() => {
     getDataFromApi();
   }, []);
+
   async function getDataFromApi() {
     try {
-      const { data } = await axios.get(`${SERVER_URL}/api/v1/brands`);
-      setData(data);
+      const response = await axios.get(`${SERVER_URL}/api/v1/brands`);
+      // assuming API returns { data: [ ...brands ] }
+      setData(Array.isArray(response.data.data) ? response.data.data : []);
+      setError("");
     } catch (e) {
-      setError(e);
+      setError(e.message || "Error loading brands");
     } finally {
       setLoading(false);
     }
   }
+
   return (
     <div className="p-5 w-full h-full">
       <div className="flex justify-between items-center">
@@ -42,14 +46,18 @@ function BrandsScreen() {
 
       {isError && (
         <ShowErrorMessage
-          children={<span className="underline cursor-pointer">reload</span>}
+          children={<span className="underline cursor-pointer" onClick={getDataFromApi}>reload</span>}
         />
       )}
 
-      {data && (
+      {!isLoading && !isError && data.length === 0 && (
+        <p>No brands found.</p>
+      )}
+
+      {data.length > 0 && (
         <div className="grid grid-cols-4 gap-4">
           {data.map((location) => (
-            <div className=" col-span-1">
+            <div className="col-span-1" key={location._id}>
               <LoactionCard data={location} />
             </div>
           ))}
@@ -61,7 +69,7 @@ function BrandsScreen() {
 
 function LoactionCard({ data }) {
   return (
-    <div className="bg-white border rounded-md shadow-teal-100  hover:shadow-md hover:shadow-teal-200 transition-transform shadow-sm p-6 relative">
+    <div className="bg-white border rounded-md shadow-teal-100 hover:shadow-md hover:shadow-teal-200 transition-transform shadow-sm p-6 relative">
       <h2 className="text-xl font-semibold">{data.name}</h2>
       <p className="mt-2 text-gray-600 line-clamp-2">{data.description}</p>
 
@@ -122,7 +130,7 @@ function LoactionCard({ data }) {
         Edit
       </NavLink>
     </div>
-  );  
+  );
 }
 
 export default BrandsScreen;

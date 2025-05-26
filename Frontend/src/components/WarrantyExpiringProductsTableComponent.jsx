@@ -21,7 +21,13 @@ function WarrantyExpiringProductsTablesComponent({ uid }) {
           "Content-Type": "application/json",
         },
       });
-      setInventoryData(data);
+      // Defensive check: ensure data is array
+      if (Array.isArray(data)) {
+        setInventoryData(data);
+      } else {
+        console.error("Expected array but got:", data);
+        setInventoryData([]);
+      }
       setLoading(false);
     } catch (error) {
       console.error("Error fetching inventory data:", error);
@@ -30,19 +36,14 @@ function WarrantyExpiringProductsTablesComponent({ uid }) {
     }
   };
 
-  const calculateMonthsDifference = (date1, date2) => {
-    const diffInMs = new Date(date2) - new Date(date1);
-    return Math.round(diffInMs / (1000 * 60 * 60 * 24 * 30.44)); // Approximate number of days in a month
-  };
-
   return (
     <div className="-mx-4 sm:-mx-8 px-4 sm:px-8 py-4 overflow-x-auto">
       {isLoading ? (
         <div>Loading...</div>
       ) : isError ? (
-        <div>Error: {isError}</div>
-      ) : inventoryData.length === 0 ? (
-        <div className="flex items-center justify-center">
+        <div className="text-red-500">Error: {isError}</div>
+      ) : !Array.isArray(inventoryData) || inventoryData.length === 0 ? (
+        <div className="flex flex-col items-center justify-center">
           <img src={EmptyData} alt="Empty Data" />
           <h3>No data available</h3>
         </div>
@@ -69,27 +70,39 @@ function WarrantyExpiringProductsTablesComponent({ uid }) {
               </tr>
             </thead>
             <tbody>
-              {inventoryData.map((item, index) => (
-                <tr key={index}>
-                  <td className="px-5 py-5 border-b border-white text-sm">
-                    {item.title}
-                  </td>
-                  <td className="px-5 py-5 border-b border-white text-sm">
-                    {item.serialNo}
-                  </td>
-                  <td className="px-5 py-5 border-b border-white text-sm">
-                    {item.warrantyMonths} / {item.dateOfPurchase.split("T")[0]}
-                  </td>
-                  <td className="px-5 py-5 border-b border-white text-sm">
-                    {item.history[0].status[0].name}
-                  </td>
-                  <td className="px-5 py-5 border-b border-white text-sm">
-                    <Link to={`/products/history/${item._id}`} className="text-blue-500 hover:underline mr-2">
-                      View
-                    </Link>
-                  </td>
-                </tr>
-              ))}
+              {inventoryData.map((item, index) => {
+                // Defensive optional chaining to avoid errors
+                const statusName =
+                  item.history?.[0]?.status?.[0]?.name || "Unknown";
+
+                return (
+                  <tr key={item._id || index}>
+                    <td className="px-5 py-5 border-b border-white text-sm">
+                      {item.title}
+                    </td>
+                    <td className="px-5 py-5 border-b border-white text-sm">
+                      {item.serialNo}
+                    </td>
+                    <td className="px-5 py-5 border-b border-white text-sm">
+                      {item.warrantyMonths} /{" "}
+                      {item.dateOfPurchase
+                        ? item.dateOfPurchase.split("T")[0]
+                        : "N/A"}
+                    </td>
+                    <td className="px-5 py-5 border-b border-white text-sm">
+                      {statusName}
+                    </td>
+                    <td className="px-5 py-5 border-b border-white text-sm">
+                      <Link
+                        to={`/products/history/${item._id}`}
+                        className="text-blue-500 hover:underline mr-2"
+                      >
+                        View
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

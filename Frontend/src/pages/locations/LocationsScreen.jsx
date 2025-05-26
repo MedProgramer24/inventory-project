@@ -9,22 +9,35 @@ import { SERVER_URL } from "../../router";
 
 function LocationsScreen() {
   const [isLoading, setLoading] = useState(true);
-  const [data, setData] = useState(null);
+  const [data, setData] = useState([]); // initialize as empty array
   const [isError, setError] = useState("");
 
   useEffect(() => {
     getDataFromApi();
   }, []);
+
   async function getDataFromApi() {
     try {
-      const { data } = await axios.get(`${SERVER_URL}/api/v1/location`);
-      setData(data);
+      const response = await axios.get(`${SERVER_URL}/api/v1/location`);
+      console.log("API response data:", response.data);
+
+      // Handle different API response shapes here
+      if (Array.isArray(response.data)) {
+        setData(response.data);
+      } else if (Array.isArray(response.data.locations)) {
+        setData(response.data.locations);
+      } else {
+        // fallback to empty array to avoid errors
+        setData([]);
+      }
+      setError("");
     } catch (e) {
-      setError(e);
+      setError(e.message || "Failed to load locations");
     } finally {
       setLoading(false);
     }
   }
+
   return (
     <div className="p-5 w-full h-full">
       <div className="flex justify-between items-center">
@@ -42,18 +55,33 @@ function LocationsScreen() {
 
       {isError && (
         <ShowErrorMessage
-          children={<span className="underline cursor-pointer">reload</span>}
+          children={
+            <span
+              className="underline cursor-pointer"
+              onClick={() => {
+                setLoading(true);
+                setError("");
+                getDataFromApi();
+              }}
+            >
+              reload
+            </span>
+          }
         />
       )}
 
-      {data && (
+      {data.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {data.map((location) => (
-            <div className=" col-span-1">
+            <div key={location._id} className="col-span-1">
               <LoactionCard data={location} />
             </div>
           ))}
         </div>
+      )}
+
+      {!isLoading && !isError && data.length === 0 && (
+        <p className="text-center text-gray-500 mt-6">No locations found.</p>
       )}
     </div>
   );
@@ -64,7 +92,7 @@ function LoactionCard({ data }) {
     <div className="bg-white border rounded-md shadow-teal-100  hover:shadow-md hover:shadow-teal-200 transition-transform shadow-sm p-6 relative">
       <h2 className="text-xl font-semibold">{data.name}</h2>
       <p className="mt-2 text-gray-600 line-clamp-2">{data.description}</p>
-  
+
       {data.editedBy ? (
         <>
           <hr className="my-4 border-gray-300" />
