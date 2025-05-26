@@ -8,6 +8,8 @@ import productRouter from "./routes/productRoutes.js";
 import companyRouter from "./routes/companyRoutes.js";
 import locationRouter from "./routes/locationRoutes.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
+import bodyParser from "body-parser";
+
 
 dotenv.config();
 

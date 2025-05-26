@@ -7,7 +7,7 @@ import {
   getProductById,
   updateProductById,
   deleteProductById,
-  getProductHistroy,
+  getProductHistory,  // Corrected spelling
 } from "../controllers/product_controller.js";
 import { isAuthenticated } from "../middlewares/user_auth.js";
 
@@ -21,7 +21,9 @@ productRouter.get("/", getAllProducts);
 
 // Get a single product by ID
 productRouter.get("/:id", getProductById);
-productRouter.get("/:id/history", getProductHistroy);
+
+// Get product history by ID
+productRouter.get("/:id/history", getProductHistory);
 
 // Update a product by ID
 productRouter.put("/:id", isAuthenticated, updateProductById);
@@ -29,6 +31,4 @@ productRouter.put("/:id", isAuthenticated, updateProductById);
 // Delete a product by ID
 productRouter.delete("/:id", isAuthenticated, deleteProductById);
 
-//search bar feature
-//expired products
 export default productRouter;

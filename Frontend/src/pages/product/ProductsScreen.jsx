@@ -80,7 +80,7 @@ function ProductsScreen() {
       </div>
       <br />
 
-      <div className="border rounded-md border-neutral-700">
+      <div className="border bg-gray-100 rounded-md border-neutral-700">
         <div className="overflow-x-auto">
           <table className="table-auto w-full border-collapse">
             <thead className="border-b text-left">

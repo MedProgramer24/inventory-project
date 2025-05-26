@@ -17,136 +17,134 @@ function EditBrandsScreen() {
   useEffect(() => {
     getDataFromApi();
   }, []);
+
   async function getDataFromApi() {
     try {
       setError("");
-
-      const { data } = await axios.get(
-        `${SERVER_URL}/api/v1/brands/${params.id}`
-      );
+      setLoading(true);
+      const { data } = await axios.get(`${SERVER_URL}/api/v1/brands/${params.id}`);
       setData(data);
     } catch (e) {
-      setError(e);
-      console.log(e);
+      setError(e.message || "Failed to fetch brand data");
+      console.error(e);
     } finally {
       setLoading(false);
     }
   }
 
   function onchangeHandler(e) {
-    e.preventDefault();
-    const name = e.target.name;
-    const value = e.target.value;
-
-    setData({ ...data, [name]: value });
+    const { name, value } = e.target;
+    setData((prev) => ({ ...prev, [name]: value }));
+    if (success) setSuccess(false); // reset success on change
   }
+
   async function handleUpdate(e) {
     e.preventDefault();
     try {
       setError("");
       setUploading(true);
-
-      const {} = await axios.patch(
-        `${SERVER_URL}/api/v1/brands/${params.id}`,
-        data,
-        {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      await axios.patch(`${SERVER_URL}/api/v1/brands/${params.id}`, data, {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      });
       setSuccess(true);
     } catch (e) {
-      setError(e);
-      console.log(e);
+      setError(e.message || "Failed to update brand");
+      console.error(e);
     } finally {
       setUploading(false);
     }
   }
 
   return (
-    <div className="p-5 w-full h-full">
-      <h1 className="text-2xl font-semibold">Brands Edit</h1>
-      {isLoading && <LoadingIndicator />}
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-start py-10 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-xl w-full bg-white rounded-xl shadow-md p-8">
+        <h1 className="text-3xl font-extrabold mb-8 text-gray-900 text-center">Edit Brand</h1>
 
-      {isError && (
-        <ShowErrorMessage
-          children={
-            <span className="underline cursor-pointer" onClick={getDataFromApi}>
-              reload
+        {isLoading && <LoadingIndicator />}
+
+        {isError && (
+          <ShowErrorMessage>
+            <span
+              className="cursor-pointer underline text-red-600 hover:text-red-800"
+              onClick={getDataFromApi}
+            >
+              {isError} - Click to reload
             </span>
-          }
-        />
-      )}
-      {success && (
-        <ShowSuccessMesasge
-          children={
-            <p>
-              Updated Successfullly{" "}
-              <Link className="underline" to={"/"} replace={true}>
-                goto Home
+          </ShowErrorMessage>
+        )}
+
+        {success && (
+          <ShowSuccessMesasge>
+            <p className="text-green-700">
+              Brand updated successfully!{" "}
+              <Link to="/" replace className="underline text-teal-600 hover:text-teal-800">
+                Go to Home
               </Link>
             </p>
-          }
-        />
-      )}
+          </ShowSuccessMesasge>
+        )}
 
-      {data && !isError && (
-        <div className="max-w-lg mx-auto">
-          <form
-            onChange={(e) => onchangeHandler(e)}
-            onSubmit={handleUpdate}
-            className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4"
-          >
-            <div className="mb-4">
+        {!isLoading && !isError && (
+          <form onChange={onchangeHandler} onSubmit={handleUpdate} className="space-y-6">
+            <div>
               <label
                 htmlFor="name"
-                className="block text-gray-700 text-sm font-bold mb-2"
+                className="block text-sm font-semibold text-gray-700 mb-2"
               >
                 Name
               </label>
               <input
-                type="text"
-                name="name"
                 id="name"
-                value={data.name}
+                name="name"
+                type="text"
+                value={data.name || ""}
                 required
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition"
+                placeholder="Enter brand name"
+                disabled={uploading}
               />
             </div>
-            <div className="mb-6">
+
+            <div>
               <label
-                htmlFor="desc"
-                className="block text-gray-700 text-sm font-bold mb-2"
+                htmlFor="description"
+                className="block text-sm font-semibold text-gray-700 mb-2"
               >
                 Description
               </label>
-              <input
-                type="text"
+              <textarea
+                id="description"
                 name="description"
-                id="desc"
-                value={data.description}
+                rows={4}
+                value={data.description || ""}
                 required
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                className="w-full border border-gray-300 rounded-md px-4 py-3 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition resize-none"
+                placeholder="Enter brand description"
+                disabled={uploading}
               />
             </div>
-            <div className="flex items-center justify-between">
+
+            <div className="flex justify-end">
               <button
-                disabled={uploading}
                 type="submit"
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                disabled={uploading}
+                className={`inline-flex justify-center py-3 px-6 rounded-md text-white font-semibold shadow-md transition
+                  ${
+                    uploading
+                      ? "bg-teal-300 cursor-not-allowed"
+                      : success
+                      ? "bg-green-600 hover:bg-green-700"
+                      : "bg-teal-600 hover:bg-teal-700"
+                  }
+                `}
               >
-                {uploading
-                  ? "Uploading"
-                  : success
-                  ? "Updated successfully"
-                  : "Update"}
+                {uploading ? "Updating..." : success ? "Updated!" : "Update Brand"}
               </button>
             </div>
           </form>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

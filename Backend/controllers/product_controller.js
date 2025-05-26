@@ -1,4 +1,4 @@
-// controllers/productController.js
+// controllers/product_controller.js
 
 import mongoose from "mongoose";
 import HistoryModel from "../models/history_model.js";
@@ -108,7 +108,7 @@ export const getAllProducts = async (req, res) => {
   }
 };
 
-// Controller to get a single product by ID
+// Get single product by ID
 export const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
@@ -130,7 +130,7 @@ export const getProductById = async (req, res) => {
   }
 };
 
-// Controller to get product history (renamed from getProductHistroy)
+// Get product history by ID
 export const getProductHistory = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
@@ -152,7 +152,7 @@ export const getProductHistory = async (req, res) => {
   }
 };
 
-// Controller to update a product by ID
+// Update product by ID
 export const updateProductById = async (req, res) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "not authorized" });
@@ -175,7 +175,6 @@ export const updateProductById = async (req, res) => {
       user,
     } = req.body;
 
-    // Build product update object and remove undefined fields
     const productUpdate = {
       title,
       description,
@@ -193,20 +192,17 @@ export const updateProductById = async (req, res) => {
     );
 
     if (locationId) {
-      // Create a new history entry for the location change
       const history = new HistoryModel({
         location: locationId,
         status: [{ name: status }],
       });
       await history.save();
 
-      // Update product info and add new history
       await Product.findByIdAndUpdate(productId, {
         $set: productUpdate,
         $push: { history: history._id },
       });
     } else if (status) {
-      // Add a new status entry to the first history
       const productRes = await Product.findById(productId);
       if (!productRes) {
         return res.status(404).json({ error: "Product not found" });
@@ -223,7 +219,6 @@ export const updateProductById = async (req, res) => {
 
       await Product.findByIdAndUpdate(productId, { $set: productUpdate });
     } else {
-      // Just update product fields
       await Product.findByIdAndUpdate(productId, { $set: productUpdate });
     }
 
@@ -233,7 +228,7 @@ export const updateProductById = async (req, res) => {
   }
 };
 
-// Controller to delete a product by ID
+// Delete product by ID
 export const deleteProductById = async (req, res) => {
   if (req.user.role !== "admin") {
     return res.status(403).json({ message: "not authorized" });

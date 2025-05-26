@@ -1,22 +1,14 @@
 import React from "react";
-import { Link, NavLink } from "react-router-dom";
+import {  NavLink } from "react-router-dom";
 
-import { FaBlog, FaSleigh } from "react-icons/fa";
+import { FaBlog,  } from "react-icons/fa";
 import { IoMdHome } from "react-icons/io";
 import { AiFillProduct } from "react-icons/ai";
 
 import { LuShoppingBag } from "react-icons/lu";
-import { MdCategory } from "react-icons/md";
 import { SiBrandfolder } from "react-icons/si";
-import { BsCollectionFill } from "react-icons/bs";
 
-import { FcAdvertising } from "react-icons/fc";
-import { RiCoupon2Fill } from "react-icons/ri";
-
-import { IoIosSettings } from "react-icons/io";
-import { FcRatings } from "react-icons/fc";
-import { FaUserAlt } from "react-icons/fa";
-import { BiCart, BiLocationPlus, BiUser } from "react-icons/bi";
+import {  BiLocationPlus, BiUser } from "react-icons/bi";
 import LogoutButton from "./LogoutButton";
 
 function SideNavbar() {
@@ -66,10 +58,10 @@ function SideNavbar() {
 
   const links = [quickLinks, catalogLinks];
   return (
-    <div className="h-full flex flex-col pr-1 overflow-y-scroll  scrollbar scroll-smooth ">
+    <div className="h-full bg-[#1f2937] flex flex-col pt-6 pr-1 overflow-y-scroll  scrollbar scroll-smooth ">
       {links.map((link, index) => (
-        <div key={index} className="my-4">
-          <h3 className="px-4 text-sm font-semibold text-slate-700">
+        <div key={index} className="my-6">
+          <h3 className="px-4 text-sm font-semibold text-white">
             {link.title}
           </h3>
           <div className="flex flex-col flex-grow gap-1 mt-2">
@@ -82,8 +74,8 @@ function SideNavbar() {
                   `${
                     prop.isActive
                       ? "text-teal-600 border-l-4 border-l-teal-600 rounded-sm bg-slate-50"
-                      : "hover:bg-slate-50 hover:text-teal-800"
-                  } pl-6 py-2 font-semibold text-slate-700 flex items-center gap-3`
+                      : "hover:bg-slate-50 text-white hover:text-teal-800"
+                  } pl-6 py-2 font-semibold flex items-center gap-3`
                 }
               >
                 {_link.icon}
@@ -101,17 +93,3 @@ function SideNavbar() {
 
 export default SideNavbar;
 
-{
-  /* <div className="align-bottom left-0 w-full bottom-0">
-          <Link
-            to=""
-            className={
-              " pl-6 py-2 font-semibold text-slate-700 flex items-center gap-3 bg-white "
-            }
-          >
-            <IoIosSettings />
-            <span>Settings</span>
-          </Link>
-        </div>
-      </div> */
-}

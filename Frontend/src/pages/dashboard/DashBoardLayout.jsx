@@ -62,7 +62,7 @@ function DashBoardLayout() {
       <HeaderBar user={userData.user} />
       <div className="grid grid-rows-[56px_1fr] grid-cols-12 h-screen overflow-hidden">
         {/* Header spacer */}
-        <div className="bg-red-400 col-span-12"></div>
+        <div className=" col-span-12"></div>
 
         {/* Sidebar */}
         <aside className="col-span-3 lg:col-span-2 overflow-y-auto bg-white border-r border-gray-200">

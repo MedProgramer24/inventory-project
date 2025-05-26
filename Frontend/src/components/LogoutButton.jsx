@@ -38,7 +38,7 @@ function LogoutButton() {
       // to={"/admin/settings"}
       className={`${
         isLoading && "animate-pulse"
-      } flex items-center justify-between px-4 border-t border-b hover:bg-red-700 bg-red-400 font-semibold   text-white py-2 `}
+      } flex items-center justify-between px-4 border-t border-b hover:bg-red-700bg-[#1f2937] font-semibold   text-white py-2 `}
     >
       Log out{" "}
       {isLoading ? (
