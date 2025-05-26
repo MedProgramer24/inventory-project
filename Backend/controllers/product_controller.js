@@ -1,5 +1,6 @@
 // controllers/productController.js
 
+import mongoose from "mongoose";
 import HistoryModel from "../models/history_model.js";
 import LocationModel from "../models/locations_models.js";
 import Product from "../models/product_model.js";
@@ -26,7 +27,6 @@ export const createProduct = async (req, res) => {
 
     const history = new HistoryModel({
       location: locationId,
-
       status: [
         {
           name: status,
@@ -57,6 +57,7 @@ export const createProduct = async (req, res) => {
     res.status(400).json({ error: error.message });
   }
 };
+
 export const getAllProducts = async (req, res) => {
   try {
     const {
@@ -100,7 +101,7 @@ export const getAllProducts = async (req, res) => {
     res.status(200).json({
       data: products,
       pages_count,
-      currentPage: page,
+      currentPage: parseInt(page),
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -109,18 +110,6 @@ export const getAllProducts = async (req, res) => {
 
 // Controller to get a single product by ID
 export const getProductById = async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id).populate("createdBy");
-    console.log("product", product);
-    if (!product) {
-      return res.status(404).json({ error: "Product not found" });
-    }
-    res.status(200).json(product);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-export const getProductHistroy = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
       .populate("createdBy")
@@ -132,7 +121,28 @@ export const getProductHistroy = async (req, res) => {
       })
       .populate("manufacturer");
 
-    console.log("product", product);
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+    res.status(200).json(product);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+// Controller to get product history (renamed from getProductHistroy)
+export const getProductHistory = async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id)
+      .populate("createdBy")
+      .populate({
+        path: "history",
+        populate: {
+          path: "location",
+        },
+      })
+      .populate("manufacturer");
+
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
     }
@@ -144,6 +154,10 @@ export const getProductHistroy = async (req, res) => {
 
 // Controller to update a product by ID
 export const updateProductById = async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "not authorized" });
+  }
+
   const productId = req.params.id;
   try {
     const {
@@ -161,54 +175,56 @@ export const updateProductById = async (req, res) => {
       user,
     } = req.body;
 
+    // Build product update object and remove undefined fields
+    const productUpdate = {
+      title,
+      description,
+      serialNo,
+      createdBy,
+      rackMountable,
+      isPart,
+      manufacturer,
+      model,
+      warrantyMonths,
+      user,
+    };
+    Object.keys(productUpdate).forEach(
+      (key) => productUpdate[key] === undefined && delete productUpdate[key]
+    );
+
     if (locationId) {
       // Create a new history entry for the location change
       const history = new HistoryModel({
         location: locationId,
-        status: [
-          {
-            name: status,
-          },
-        ],
+        status: [{ name: status }],
       });
-
       await history.save();
 
-      // Update product information and push the new history entry
+      // Update product info and add new history
       await Product.findByIdAndUpdate(productId, {
-        $set: {
-          title,
-          description,
-          serialNo,
-          createdBy,
-          rackMountable,
-          isPart,
-          manufacturer,
-          model,
-          warrantyMonths,
-          user,
-        },
-        $push: {
-          history: history._id,
-        },
+        $set: productUpdate,
+        $push: { history: history._id },
       });
     } else if (status) {
-      // Add a new status entry to the existing history
+      // Add a new status entry to the first history
       const productRes = await Product.findById(productId);
       if (!productRes) {
         return res.status(404).json({ error: "Product not found" });
       }
+
       const historyId = productRes.history[0];
       const his = await HistoryModel.findById(historyId);
-      
-      // Push the new status object into the history
-      his.status.push({
-        name: status,
-      });
+      if (!his) {
+        return res.status(404).json({ error: "History not found" });
+      }
 
+      his.status.push({ name: status });
       await his.save();
+
+      await Product.findByIdAndUpdate(productId, { $set: productUpdate });
     } else {
-      console.log("Unhandled condition");
+      // Just update product fields
+      await Product.findByIdAndUpdate(productId, { $set: productUpdate });
     }
 
     res.status(200).json({ message: "success" });
@@ -219,6 +235,9 @@ export const updateProductById = async (req, res) => {
 
 // Controller to delete a product by ID
 export const deleteProductById = async (req, res) => {
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ message: "not authorized" });
+  }
   try {
     const product = await Product.findByIdAndDelete(req.params.id);
     if (!product) {

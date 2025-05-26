@@ -34,6 +34,8 @@ app.use("/api/v1/brands", companyRouter);
 app.use("/api/v1/location", locationRouter);
 app.use("/api/v1/analytics", analyticsRoutes);
 
+app.use(bodyParser.urlencoded({ extended: false }));
+
 app.use(express.urlencoded({ extended: true }));
 
 // console.log(process.env.FRONTEND_URL);

@@ -4,22 +4,34 @@ import LoadingIndicator from "../../components/LoadingIndicator";
 import ShowErrorMessage from "../../components/ShowErrorMessage";
 import { IoMailOutline } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { SERVER_URL } from "../../router";
 
 function BrandsScreen() {
+  const location = useLocation();
+
   const [isLoading, setLoading] = useState(true);
-  const [data, setData] = useState([]);  // initialize as empty array
+  const [data, setData] = useState([]); // initialize as empty array
   const [isError, setError] = useState("");
 
   useEffect(() => {
-    getDataFromApi();
-  }, []);
+    // If reload flag is in location state, fetch data
+    if (location.state?.reload) {
+      getDataFromApi();
+      // Clear the reload flag from history state to avoid repeated reloads
+      window.history.replaceState({}, document.title);
+    } else {
+      // On initial mount, load data too
+      getDataFromApi();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]);
 
   async function getDataFromApi() {
+    setLoading(true);
     try {
-      const response = await axios.get(`${SERVER_URL}/api/v1/brands`);
-      // assuming API returns { data: [ ...brands ] }
+      const response = await axios.get(`${SERVER_URL}/api/v1/brands?t=${Date.now()}`); // cache buster
+      console.log("GET brands response:", response.data); // debug log
       setData(Array.isArray(response.data.data) ? response.data.data : []);
       setError("");
     } catch (e) {
@@ -46,19 +58,21 @@ function BrandsScreen() {
 
       {isError && (
         <ShowErrorMessage
-          children={<span className="underline cursor-pointer" onClick={getDataFromApi}>reload</span>}
+          children={
+            <span className="underline cursor-pointer" onClick={getDataFromApi}>
+              reload
+            </span>
+          }
         />
       )}
 
-      {!isLoading && !isError && data.length === 0 && (
-        <p>No brands found.</p>
-      )}
+      {!isLoading && !isError && data.length === 0 && <p>No brands found.</p>}
 
       {data.length > 0 && (
         <div className="grid grid-cols-4 gap-4">
-          {data.map((location) => (
-            <div className="col-span-1" key={location._id}>
-              <LoactionCard data={location} />
+          {data.map((brand) => (
+            <div className="col-span-1" key={brand._id}>
+              <BrandCard data={brand} />
             </div>
           ))}
         </div>
@@ -67,7 +81,7 @@ function BrandsScreen() {
   );
 }
 
-function LoactionCard({ data }) {
+function BrandCard({ data }) {
   return (
     <div className="bg-white border rounded-md shadow-teal-100 hover:shadow-md hover:shadow-teal-200 transition-transform shadow-sm p-6 relative">
       <h2 className="text-xl font-semibold">{data.name}</h2>
@@ -81,9 +95,7 @@ function LoactionCard({ data }) {
               <div className="flex justify-between items-center w-full gap-2">
                 <p className="text-gray-600 flex gap-2 items-center line-clamp-1">
                   <FaUser />
-                  <h3 className="font-semibold line-clamp-1">
-                    {data.editedBy.name}
-                  </h3>
+                  <h3 className="font-semibold line-clamp-1">{data.editedBy.name}</h3>
                 </p>
                 <span className="px-3 py-1 line-clamp-1 bg-neutral-200 text-sm rounded-3xl text-teal-800">
                   Edited By
@@ -105,9 +117,7 @@ function LoactionCard({ data }) {
                 <div className="flex justify-between items-center w-full gap-2">
                   <p className="text-gray-600 flex gap-2 items-center line-clamp-1">
                     <FaUser />
-                    <h3 className="font-semibold line-clamp-1">
-                      {data.createdBy.name}
-                    </h3>
+                    <h3 className="font-semibold line-clamp-1">{data.createdBy.name}</h3>
                   </p>
                   <span className="line-clamp-1 px-3 py-1 bg-neutral-200 text-sm rounded-3xl text-teal-800">
                     Created By
